@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Rectangle } from "react-leaflet";
+import { MapContainer, TileLayer, Rectangle, useMap } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 const WorldMap = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isBrowser, setIsBrowser] = useState(false);
 
   useEffect(() => {
-    setIsBrowser(true);
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000); // Update every minute
@@ -32,11 +31,47 @@ const WorldMap = () => {
     return [lat, lng];
   };
 
-  if (!isBrowser) {
-    return null;
-  }
-
   const [dayNightLat, dayNightLng] = getDayNightPath();
+
+  const MapSetup = () => {
+    const map = useMap();
+    useEffect(() => {
+      map.setMaxBounds([
+        [-90, -180],
+        [90, 180],
+      ]);
+      map.fitBounds([
+        [-60, -180],
+        [60, 180],
+      ]);
+    }, [map]);
+    return null;
+  };
+
+  const DayNightOverlay = () => {
+    const map = useMap();
+
+    useEffect(() => {
+      const overlay = L.rectangle(
+        [
+          [-90, dayNightLng],
+          [90, dayNightLng + 180],
+        ],
+        {
+          color: "rgba(0, 0, 0, 0.3)",
+          fillOpacity: 0.3,
+          weight: 0,
+          pane: "overlayPane",
+        }
+      ).addTo(map);
+
+      return () => {
+        map.removeLayer(overlay);
+      };
+    }, [map, dayNightLng]);
+
+    return null;
+  };
 
   return (
     <div className="w-full h-screen">
@@ -48,22 +83,19 @@ const WorldMap = () => {
         maxZoom={5}
         zoomControl={false}
         attributionControl={false}
+        worldCopyJump={false}
+        maxBoundsViscosity={1.0}
       >
+        <MapSetup />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
-          className="grayscale"
-        />
-        <Rectangle
+          noWrap={true}
           bounds={[
-            [-90, dayNightLng],
-            [90, dayNightLng + 180],
+            [-90, -180],
+            [90, 180],
           ]}
-          pathOptions={{
-            color: "rgba(0, 0, 0, 0.3)",
-            fillOpacity: 0.3,
-            weight: 0,
-          }}
         />
+        <DayNightOverlay />
         {[...Array(24)].map((_, i) => (
           <Rectangle
             key={i}
