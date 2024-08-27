@@ -73,12 +73,39 @@ const WorldMap = () => {
     return null;
   };
 
+  const HourLabels = () => {
+    const map = useMap();
+
+    useEffect(() => {
+      const labels = [];
+      for (let i = 0; i < 24; i++) {
+        const label = L.divIcon({
+          className: "hour-label",
+          html: `<div class="bg-white bg-opacity-70 px-1 rounded">${i}</div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+        });
+        labels.push(
+          L.marker([75, -172.5 + 15 * i], { icon: label }).addTo(map)
+        );
+      }
+
+      return () => {
+        labels.forEach((label) => map.removeLayer(label));
+      };
+    }, [map]);
+
+    return null;
+  };
+
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-screen pt-10">
+      {" "}
+      {/* Added top padding */}
       <MapContainer
         center={[0, 0]}
         zoom={2}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "calc(100% - 2.5rem)", width: "100%" }}
         minZoom={2}
         maxZoom={5}
         zoomControl={false}
@@ -110,8 +137,9 @@ const WorldMap = () => {
             }}
           />
         ))}
+        <HourLabels />
       </MapContainer>
-      <div className="absolute top-4 left-4 bg-white bg-opacity-70 p-2 rounded">
+      <div className="absolute top-2 left-4 bg-white bg-opacity-70 p-2 rounded">
         Current Time: {currentTime.toUTCString()}
       </div>
     </div>

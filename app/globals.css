@@ -3,3 +3,6 @@
 @tailwind utilities;
 
 /* Add any other global styles here */
+.hour-label {
+  pointer-events: none;
+}
