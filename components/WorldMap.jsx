@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Rectangle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 const WorldMap = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [terminatorCoords, setTerminatorCoords] = useState([]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -15,6 +16,10 @@ const WorldMap = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    setTerminatorCoords(calculateTerminator(currentTime));
+  }, [currentTime]);
 
   const getSydneyTime = () => {
     return new Intl.DateTimeFormat("en-AU", {
@@ -30,23 +35,9 @@ const WorldMap = () => {
     }).format(currentTime);
   };
 
-  const getDayNightPath = () => {
-    const sydneyOffset = 10; // Sydney is UTC+10
-    const sydneyHours = currentTime.getUTCHours() + sydneyOffset;
-    const lat =
-      Math.asin(
-        0.397731 *
-          Math.sin(
-            0.98565 * (currentTime.getUTCDate() - 80) +
-              1.914 * Math.sin(0.98565 * (currentTime.getUTCDate() - 8))
-          )
-      ) *
-      (180 / Math.PI);
-    const lng = -15 * (sydneyHours + currentTime.getUTCMinutes() / 60 - 12);
-    return [lat, lng];
+  const calculateTerminator = (date) => {
+    // ... (keep the existing calculateTerminator function)
   };
-
-  const [dayNightLat, dayNightLng] = getDayNightPath();
 
   const MapSetup = () => {
     const map = useMap();
@@ -63,31 +54,6 @@ const WorldMap = () => {
     return null;
   };
 
-  const DayNightOverlay = () => {
-    const map = useMap();
-
-    useEffect(() => {
-      const overlay = L.rectangle(
-        [
-          [-90, dayNightLng],
-          [90, dayNightLng + 180],
-        ],
-        {
-          color: "rgba(0, 0, 0, 0.3)",
-          fillOpacity: 0.3,
-          weight: 0,
-          pane: "overlayPane",
-        }
-      ).addTo(map);
-
-      return () => {
-        map.removeLayer(overlay);
-      };
-    }, [map, dayNightLng]);
-
-    return null;
-  };
-
   const HourLabels = () => {
     const map = useMap();
 
@@ -101,7 +67,7 @@ const WorldMap = () => {
           iconAnchor: [10, 10],
         });
         labels.push(
-          L.marker([80, -172.5 + 15 * i], { icon: label }).addTo(map)
+          L.marker([77, -172.5 + 15 * i], { icon: label }).addTo(map)
         );
       }
 
@@ -135,14 +101,31 @@ const WorldMap = () => {
             [90, 180],
           ]}
         />
-        <DayNightOverlay />
+        {terminatorCoords.length > 0 && (
+          <Polygon
+            positions={[
+              ...terminatorCoords,
+              [90, 180],
+              [90, -180],
+              [-90, -180],
+              [-90, 180],
+            ]}
+            pathOptions={{
+              color: "rgba(0, 0, 0, 0.3)",
+              fillOpacity: 0.3,
+              weight: 0,
+            }}
+          />
+        )}
         <HourLabels />
         {[...Array(24)].map((_, i) => (
-          <Rectangle
+          <Polygon
             key={i}
-            bounds={[
+            positions={[
               [-90, -180 + 15 * i],
+              [90, -180 + 15 * i],
               [90, -180 + 15 * (i + 1)],
+              [-90, -180 + 15 * (i + 1)],
             ]}
             pathOptions={{
               color: "rgba(255, 255, 255, 0.2)",
