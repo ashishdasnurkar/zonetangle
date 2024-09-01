@@ -18,7 +18,8 @@ const WorldMap = () => {
   }, []);
 
   useEffect(() => {
-    setTerminatorCoords(calculateTerminator(currentTime));
+    const coords = calculateTerminator(currentTime);
+    setTerminatorCoords(coords);
   }, [currentTime]);
 
   const getSydneyTime = () => {
@@ -62,9 +63,9 @@ const WorldMap = () => {
       for (let i = 0; i < 24; i++) {
         const label = L.divIcon({
           className: "hour-label",
-          html: `<div class="bg-white bg-opacity-70 px-1 rounded">${i}</div>`,
-          iconSize: [20, 20],
-          iconAnchor: [10, 10],
+          html: `<div class="bg-blue-500 text-white px-2 py-1 rounded shadow text-sm flex items-center justify-center" style="width: 30px; height: 20px;">${i}</div>`,
+          iconSize: [30, 20],
+          iconAnchor: [15, 10],
         });
         labels.push(
           L.marker([77, -172.5 + 15 * i], { icon: label }).addTo(map)
@@ -80,42 +81,50 @@ const WorldMap = () => {
   };
 
   return (
-    <div className="w-full h-screen pt-10">
+    <div className="w-full h-screen">
       <MapContainer
         center={[0, 0]}
         zoom={2}
-        style={{ height: "calc(100% - 2.5rem)", width: "100%" }}
+        style={{ height: "100%", width: "100%" }}
         minZoom={2}
         maxZoom={5}
-        zoomControl={false}
-        attributionControl={false}
+        zoomControl={true}
+        attributionControl={true}
         worldCopyJump={false}
         maxBoundsViscosity={1.0}
       >
         <MapSetup />
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
-          noWrap={true}
-          bounds={[
-            [-90, -180],
-            [90, 180],
-          ]}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {terminatorCoords.length > 0 && (
-          <Polygon
-            positions={[
-              ...terminatorCoords,
-              [90, 180],
-              [90, -180],
-              [-90, -180],
-              [-90, 180],
-            ]}
-            pathOptions={{
-              color: "rgba(0, 0, 0, 0.3)",
-              fillOpacity: 0.3,
-              weight: 0,
-            }}
-          />
+        {terminatorCoords && terminatorCoords.length > 0 && (
+          <>
+            <Polygon
+              positions={[
+                ...terminatorCoords,
+                [90, 180],
+                [90, -180],
+                [-90, -180],
+                [-90, 180],
+              ]}
+              pathOptions={{
+                fillColor: "#000",
+                fillOpacity: 0.3,
+                color: "#666",
+                weight: 1,
+              }}
+            />
+            <Polygon
+              positions={terminatorCoords}
+              pathOptions={{
+                fillColor: "#fff",
+                fillOpacity: 0.1,
+                color: "#666",
+                weight: 1,
+              }}
+            />
+          </>
         )}
         <HourLabels />
         {[...Array(24)].map((_, i) => (
@@ -128,15 +137,17 @@ const WorldMap = () => {
               [-90, -180 + 15 * (i + 1)],
             ]}
             pathOptions={{
-              color: "rgba(255, 255, 255, 0.2)",
+              color: "#666",
               weight: 1,
               fill: false,
+              opacity: 0.5,
             }}
           />
         ))}
       </MapContainer>
-      <div className="absolute top-2 left-4 bg-white bg-opacity-70 p-2 rounded">
-        Sydney Time: {getSydneyTime()}
+      <div className="absolute top-2 left-2 bg-white p-2 rounded shadow z-[1000]">
+        <h2 className="text-lg font-semibold">Sydney Time</h2>
+        <p>{getSydneyTime()}</p>
       </div>
     </div>
   );
