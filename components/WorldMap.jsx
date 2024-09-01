@@ -16,18 +16,33 @@ const WorldMap = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const getSydneyTime = () => {
+    return new Intl.DateTimeFormat("en-AU", {
+      timeZone: "Australia/Sydney",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(currentTime);
+  };
+
   const getDayNightPath = () => {
-    const date = currentTime;
+    const sydneyOffset = 10; // Sydney is UTC+10
+    const sydneyHours = currentTime.getUTCHours() + sydneyOffset;
     const lat =
       Math.asin(
         0.397731 *
           Math.sin(
-            0.98565 * (date.getUTCDate() - 80) +
-              1.914 * Math.sin(0.98565 * (date.getUTCDate() - 8))
+            0.98565 * (currentTime.getUTCDate() - 80) +
+              1.914 * Math.sin(0.98565 * (currentTime.getUTCDate() - 8))
           )
       ) *
       (180 / Math.PI);
-    const lng = -15 * (date.getUTCHours() + date.getUTCMinutes() / 60 - 12);
+    const lng = -15 * (sydneyHours + currentTime.getUTCMinutes() / 60 - 12);
     return [lat, lng];
   };
 
@@ -86,7 +101,7 @@ const WorldMap = () => {
           iconAnchor: [10, 10],
         });
         labels.push(
-          L.marker([75, -172.5 + 15 * i], { icon: label }).addTo(map)
+          L.marker([80, -172.5 + 15 * i], { icon: label }).addTo(map)
         );
       }
 
@@ -100,8 +115,6 @@ const WorldMap = () => {
 
   return (
     <div className="w-full h-screen pt-10">
-      {" "}
-      {/* Added top padding */}
       <MapContainer
         center={[0, 0]}
         zoom={2}
@@ -123,6 +136,7 @@ const WorldMap = () => {
           ]}
         />
         <DayNightOverlay />
+        <HourLabels />
         {[...Array(24)].map((_, i) => (
           <Rectangle
             key={i}
@@ -137,10 +151,9 @@ const WorldMap = () => {
             }}
           />
         ))}
-        <HourLabels />
       </MapContainer>
       <div className="absolute top-2 left-4 bg-white bg-opacity-70 p-2 rounded">
-        Current Time: {currentTime.toUTCString()}
+        Sydney Time: {getSydneyTime()}
       </div>
     </div>
   );
