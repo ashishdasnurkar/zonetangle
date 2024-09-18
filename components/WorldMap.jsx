@@ -60,6 +60,18 @@ const WorldMap = () => {
     return null;
   };
 
+  const getSelectedLocationTime = () => {
+    if (!selectedLocation) return null;
+    const options = {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: selectedLocation.timezone,
+    };
+    return new Intl.DateTimeFormat(undefined, options).format(currentTime);
+  };
+
   const MapSetup = () => {
     const map = useMap();
     useEffect(() => {
