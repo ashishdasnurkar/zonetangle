@@ -49,6 +49,17 @@ const WorldMap = () => {
     // ... (keep the existing calculateTerminator function)
   };
 
+  const MapClickHandler = () => {
+    useMapEvents({
+      click: (e) => {
+        const { lat, lng } = e.latlng;
+        const timezone = tzlookup(lat, lng);
+        setSelectedLocation({ lat, lng, timezone });
+      },
+    });
+    return null;
+  };
+
   const MapSetup = () => {
     const map = useMap();
     useEffect(() => {
