@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Polygon, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Polygon,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import tzlookup from "tz-lookup";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -9,6 +16,7 @@ const WorldMap = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [terminatorCoords, setTerminatorCoords] = useState([]);
   const currentUTCHour = currentTime.getUTCHours();
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
